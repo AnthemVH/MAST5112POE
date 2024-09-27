@@ -318,8 +318,8 @@ const LoginScreen = ({ navigation, setIsLoggedIn }: any) => {
         value={username}
         onChangeText={setUsername}
         style={styles.input}
-        onSubmitEditing={handleLogin} // Trigger login on Enter
-        returnKeyType="next" // Change the return key type for better UX
+        onSubmitEditing={handleLogin} 
+        returnKeyType="next" 
       />
       <TextInput
         placeholder="Password"
@@ -327,12 +327,26 @@ const LoginScreen = ({ navigation, setIsLoggedIn }: any) => {
         onChangeText={setPassword}
         secureTextEntry
         style={styles.input}
-        onSubmitEditing={handleLogin} // Trigger login on Enter
-        returnKeyType="done" // Change the return key type for better UX
+        onSubmitEditing={handleLogin} 
+        returnKeyType="done" 
       />
       <Button title="Login" onPress={handleLogin} color="#4CAF50" />
     </View>
   );
+};
+const getHeaderTitle = (routeName: string) => {
+  switch (routeName) {
+    case 'DishesList':
+      return 'Dishes List';
+    case 'AddDish':
+      return 'Add Dish';
+    case 'EditDish':
+      return 'Edit Dish';
+    case 'Login':
+      return 'Login';
+    default:
+      return '';
+  }
 };
 
 
