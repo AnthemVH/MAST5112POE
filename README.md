@@ -14,5 +14,5 @@ This is a simple React Native app that allows users to manage a menu. You can **
 
 ## Example Video
 
-[![Watch the video](https://img.youtube.com/vi/YOUR_VIDEO_ID/0.jpg)]([YOUR_VIDEO_URL](https://github.com/AnthemVH/MAST5112POE/blob/main/Example.mp4))
+[![Watch the video](https://img.youtube.com/vi/YOUR_VIDEO_ID/0.jpg)](https://github.com/AnthemVH/MAST5112POE/blob/6e0c1efcfdf652d620cb50633a033551c3c27e39/Example.mp4))
 
