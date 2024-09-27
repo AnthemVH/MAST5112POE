@@ -92,14 +92,15 @@ const DishesListScreen = ({ navigation, isLoggedIn, setIsLoggedIn }: any) => {
 
   const filteredDishes = dishes.filter(dish => !filter || dish.course === filter);
 
- 
-  const calculateAveragePrice = () => {
-    if (filteredDishes.length === 0) return 0;
-    const total = filteredDishes.reduce((sum, dish) => sum + parseFloat(dish.price), 0);
-    return (total / filteredDishes.length).toFixed(2);
-  };
 
-  const averagePrice = calculateAveragePrice();
+  const totalDishes = dishes.length;
+  const totalFilteredDishes = filteredDishes.length;
+  const averagePrice = totalFilteredDishes > 0 
+  ? filteredDishes.reduce((sum, dish) => {
+      const price = Number(dish.price);
+      return sum + (isNaN(price) ? 0 : price);
+    }, 0) / totalFilteredDishes 
+  : 0;
 
   const handleLogout = () => {
     setIsLoggedIn(false);
@@ -108,7 +109,11 @@ const DishesListScreen = ({ navigation, isLoggedIn, setIsLoggedIn }: any) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.averagePriceText}>Average Price: R{averagePrice}</Text>
+      <View style={styles.averagePriceContainer}>
+        <Text style={styles.averagePriceText}>Average Price: R{averagePrice.toFixed(2)}</Text>
+      </View>
+
+
       <Picker
         selectedValue={filter}
         onValueChange={(itemValue) => setFilter(itemValue)}
@@ -127,6 +132,12 @@ const DishesListScreen = ({ navigation, isLoggedIn, setIsLoggedIn }: any) => {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.flatListContainer}
       />
+
+      {/* Totals Section */}
+      <View style={styles.totalsContainer}>
+        <Text style={styles.totalText}>Total Dishes: {totalDishes}</Text>
+        <Text style={styles.totalText}>Filtered Dishes: {totalFilteredDishes}</Text>
+      </View>
 
       {isLoggedIn ? (
         <>
@@ -250,7 +261,30 @@ const EditDishScreen = ({ navigation, route }: any) => {
 
   return (
     <View style={styles.container}>
-            <TextInput
+      <TextInput
+        placeholder="Dish Name"
+        value={name}
+        onChangeText={setName}
+        style={styles.input}
+      />
+      <TextInput
+        placeholder="Description"
+        value={description}
+        onChangeText={setDescription}
+        style={styles.input}
+      />
+      <Picker
+        selectedValue={course}
+        onValueChange={(itemValue) => setCourse(itemValue)}
+        style={styles.picker}
+      >
+        <Picker.Item label="Select Course" value="" />
+        <Picker.Item label="Entrée" value="Entrée" />
+        <Picker.Item label="Appetizers" value="Appetizers" />
+        <Picker.Item label="Dessert" value="Dessert" />
+        <Picker.Item label="Sides" value="Sides" />
+      </Picker>
+      <TextInput
         placeholder="Price"
         value={price}
         onChangeText={setPrice}
@@ -261,6 +295,7 @@ const EditDishScreen = ({ navigation, route }: any) => {
     </View>
   );
 };
+
 
 const LoginScreen = ({ navigation, setIsLoggedIn }: any) => {
   const [username, setUsername] = useState('');
@@ -283,6 +318,8 @@ const LoginScreen = ({ navigation, setIsLoggedIn }: any) => {
         value={username}
         onChangeText={setUsername}
         style={styles.input}
+        onSubmitEditing={handleLogin} // Trigger login on Enter
+        returnKeyType="next" // Change the return key type for better UX
       />
       <TextInput
         placeholder="Password"
@@ -290,25 +327,14 @@ const LoginScreen = ({ navigation, setIsLoggedIn }: any) => {
         onChangeText={setPassword}
         secureTextEntry
         style={styles.input}
+        onSubmitEditing={handleLogin} // Trigger login on Enter
+        returnKeyType="done" // Change the return key type for better UX
       />
       <Button title="Login" onPress={handleLogin} color="#4CAF50" />
     </View>
   );
 };
-const getHeaderTitle = (routeName: string) => {
-  switch (routeName) {
-    case 'DishesList':
-      return 'Dishes List';
-    case 'AddDish':
-      return 'Add Dish';
-    case 'EditDish':
-      return 'Edit Dish';
-    case 'Login':
-      return 'Login';
-    default:
-      return '';
-  }
-};
+
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -435,6 +461,32 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1976D2', 
     marginBottom: 10,
+  },
+  
+  averagePriceContainer: {
+    marginBottom: 10,
+  },
+  totalsContainer: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    backgroundColor: colours.dishBackground,
+    borderRadius: 8,
+    padding: 10,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 3.5,
+    elevation: 5,
+  },
+  totalText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: colours.primary,
+    textAlign: 'center',
   },
 });
 

@@ -92,6 +92,16 @@ const DishesListScreen = ({ navigation, isLoggedIn, setIsLoggedIn }: any) => {
 
   const filteredDishes = dishes.filter(dish => !filter || dish.course === filter);
 
+
+  const totalDishes = dishes.length;
+  const totalFilteredDishes = filteredDishes.length;
+  const averagePrice = totalFilteredDishes > 0 
+  ? filteredDishes.reduce((sum, dish) => {
+      const price = Number(dish.price);
+      return sum + (isNaN(price) ? 0 : price);
+    }, 0) / totalFilteredDishes 
+  : 0;
+
   const handleLogout = () => {
     setIsLoggedIn(false);
     Alert.alert('Logged out successfully!');
@@ -99,6 +109,11 @@ const DishesListScreen = ({ navigation, isLoggedIn, setIsLoggedIn }: any) => {
 
   return (
     <View style={styles.container}>
+      <View style={styles.averagePriceContainer}>
+        <Text style={styles.averagePriceText}>Average Price: R{averagePrice.toFixed(2)}</Text>
+      </View>
+
+
       <Picker
         selectedValue={filter}
         onValueChange={(itemValue) => setFilter(itemValue)}
@@ -118,6 +133,12 @@ const DishesListScreen = ({ navigation, isLoggedIn, setIsLoggedIn }: any) => {
         contentContainerStyle={styles.flatListContainer}
       />
 
+      {/* Totals Section */}
+      <View style={styles.totalsContainer}>
+        <Text style={styles.totalText}>Total Dishes: {totalDishes}</Text>
+        <Text style={styles.totalText}>Filtered Dishes: {totalFilteredDishes}</Text>
+      </View>
+
       {isLoggedIn ? (
         <>
           <Button title="Logout" onPress={handleLogout} color="red" />
@@ -129,6 +150,7 @@ const DishesListScreen = ({ navigation, isLoggedIn, setIsLoggedIn }: any) => {
     </View>
   );
 };
+
 
 const AddDishScreen = ({ navigation, route }: any) => {
   const { loadDishes } = route.params;
@@ -239,7 +261,30 @@ const EditDishScreen = ({ navigation, route }: any) => {
 
   return (
     <View style={styles.container}>
-            <TextInput
+      <TextInput
+        placeholder="Dish Name"
+        value={name}
+        onChangeText={setName}
+        style={styles.input}
+      />
+      <TextInput
+        placeholder="Description"
+        value={description}
+        onChangeText={setDescription}
+        style={styles.input}
+      />
+      <Picker
+        selectedValue={course}
+        onValueChange={(itemValue) => setCourse(itemValue)}
+        style={styles.picker}
+      >
+        <Picker.Item label="Select Course" value="" />
+        <Picker.Item label="Entrée" value="Entrée" />
+        <Picker.Item label="Appetizers" value="Appetizers" />
+        <Picker.Item label="Dessert" value="Dessert" />
+        <Picker.Item label="Sides" value="Sides" />
+      </Picker>
+      <TextInput
         placeholder="Price"
         value={price}
         onChangeText={setPrice}
@@ -250,6 +295,7 @@ const EditDishScreen = ({ navigation, route }: any) => {
     </View>
   );
 };
+
 
 const LoginScreen = ({ navigation, setIsLoggedIn }: any) => {
   const [username, setUsername] = useState('');
@@ -418,6 +464,38 @@ const styles = StyleSheet.create({
     fontSize: 22,
     color: colours.text, 
     marginLeft: 10, 
+  },
+  averagePriceText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1976D2', 
+    marginBottom: 10,
+  },
+  
+  averagePriceContainer: {
+    marginBottom: 10,
+  },
+  totalsContainer: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    backgroundColor: colours.dishBackground,
+    borderRadius: 8,
+    padding: 10,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 3.5,
+    elevation: 5,
+  },
+  totalText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: colours.primary,
+    textAlign: 'center',
   },
 });
 
