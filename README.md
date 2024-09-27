@@ -13,6 +13,6 @@ This is a simple React Native app that allows users to manage a menu. You can **
 - **Total Dishes**: Displays the total number of dishes in your menu.
 
 ## Example Video
+[![Example Video]](https://youtu.be/J1mhGSccsRk)
 
-[(https://youtu.be/J1mhGSccsRk)]
 
