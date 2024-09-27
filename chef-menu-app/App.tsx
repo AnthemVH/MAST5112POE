@@ -4,6 +4,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Picker } from '@react-native-picker/picker';
+import Logo from './logo'
+import { colours } from './colours';
 
 export interface Dish {
   id: string;
@@ -13,6 +15,9 @@ export interface Dish {
   price: string;
 }
 
+const sampleUsername = "admin";
+const samplePassword = "admin";
+
 const initialDishes: Dish[] = [
   { id: '1', name: 'Spaghetti', description: 'Classic Italian pasta dish', course: 'Mains', price: '12.99' },
   { id: '2', name: 'Cheesecake', description: 'Rich and creamy dessert', course: 'Desserts', price: '6.99' },
@@ -20,10 +25,9 @@ const initialDishes: Dish[] = [
 
 const Stack = createStackNavigator();
 
-const DishesListScreen = ({ navigation }: any) => {
+const DishesListScreen = ({ navigation, isLoggedIn, setIsLoggedIn }: any) => {
   const [dishes, setDishes] = useState<Dish[]>([]);
   const [filter, setFilter] = useState('');
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // State to track login status
 
   const loadDishes = async () => {
     try {
@@ -48,13 +52,13 @@ const DishesListScreen = ({ navigation }: any) => {
       Alert.alert('Please log in to remove a dish.');
       return;
     }
-    
+
     try {
       const storedDishes = await AsyncStorage.getItem('dishes');
       const dishes = storedDishes ? JSON.parse(storedDishes) : [];
       const updatedDishes = dishes.filter((dish: Dish) => dish.id !== id);
       await AsyncStorage.setItem('dishes', JSON.stringify(updatedDishes));
-      loadDishes(); // Refresh dishes
+      loadDishes();
       Alert.alert('Dish removed successfully!');
     } catch (error) {
       console.error('Failed to remove dish:', error);
@@ -66,15 +70,15 @@ const DishesListScreen = ({ navigation }: any) => {
     <View style={styles.dishItem}>
       <View style={styles.dishDetails}>
         <Text style={styles.dishName}>{item.name}</Text>
-        <Text>{item.description}</Text>
+        <Text style={styles.dishDescription}>{item.description}</Text>
         <Text style={styles.dishPrice}>R{item.price}</Text>
       </View>
-      {isLoggedIn && ( // Show edit and remove buttons only if logged in
+      {isLoggedIn && (
         <View style={styles.buttonContainer}>
           <Button
             title="Edit"
             onPress={() => navigation.navigate('EditDish', { dish: item, loadDishes })}
-            color="#007BFF"
+            color="#4CAF50"
           />
           <Button
             title="Remove"
@@ -86,13 +90,25 @@ const DishesListScreen = ({ navigation }: any) => {
     </View>
   );
 
-  const filteredDishes = dishes.filter(dish => {
-    if (!filter) return true;
-    return dish.course === filter;
-  });
+  const filteredDishes = dishes.filter(dish => !filter || dish.course === filter);
+
+ 
+  const calculateAveragePrice = () => {
+    if (filteredDishes.length === 0) return 0;
+    const total = filteredDishes.reduce((sum, dish) => sum + parseFloat(dish.price), 0);
+    return (total / filteredDishes.length).toFixed(2);
+  };
+
+  const averagePrice = calculateAveragePrice();
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    Alert.alert('Logged out successfully!');
+  };
 
   return (
     <View style={styles.container}>
+      <Text style={styles.averagePriceText}>Average Price: R{averagePrice}</Text>
       <Picker
         selectedValue={filter}
         onValueChange={(itemValue) => setFilter(itemValue)}
@@ -104,24 +120,26 @@ const DishesListScreen = ({ navigation }: any) => {
         <Picker.Item label="Dessert" value="Dessert" />
         <Picker.Item label="Sides" value="Sides" />
       </Picker>
-      
+
       <FlatList
         data={filteredDishes}
         renderItem={renderDish}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.flatListContainer}
       />
-      
-      <View style={styles.loginButtonContainer}>
-        <Button title={isLoggedIn ? "Logout" : "Login"} onPress={() => setIsLoggedIn(!isLoggedIn)} />
-      </View>
-      
-      {isLoggedIn && (
-        <Button title="Add Dish" onPress={() => navigation.navigate('AddDish', { loadDishes })} />
+
+      {isLoggedIn ? (
+        <>
+          <Button title="Logout" onPress={handleLogout} color="red" />
+          <Button title="Add Dish" onPress={() => navigation.navigate('AddDish', { loadDishes })} />
+        </>
+      ) : (
+        <Button title="Login" onPress={() => navigation.navigate('Login')} />
       )}
     </View>
   );
 };
+
 
 const AddDishScreen = ({ navigation, route }: any) => {
   const { loadDishes } = route.params;
@@ -190,7 +208,7 @@ const AddDishScreen = ({ navigation, route }: any) => {
         style={styles.input}
         keyboardType="numeric"
       />
-      <Button title="Add Dish" onPress={handleAddDish} />
+      <Button title="Add Dish" onPress={handleAddDish} color="#4CAF50" />
     </View>
   );
 };
@@ -232,97 +250,192 @@ const EditDishScreen = ({ navigation, route }: any) => {
 
   return (
     <View style={styles.container}>
-      <TextInput
-        placeholder="Dish Name"
-        value={name}
-        onChangeText={setName}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Description"
-        value={description}
-        onChangeText={setDescription}
-        style={styles.input}
-      />
-      <Picker
-        selectedValue={course}
-        onValueChange={(itemValue) => setCourse(itemValue)}
-        style={styles.picker}
-      >
-        <Picker.Item label="Select Course" value="" />
-        <Picker.Item label="Entrée" value="Entrée" />
-        <Picker.Item label="Appetizers" value="Appetizers" />
-        <Picker.Item label="Dessert" value="Dessert" />
-        <Picker.Item label="Sides" value="Sides" />
-      </Picker>
-      <TextInput
+            <TextInput
         placeholder="Price"
         value={price}
         onChangeText={setPrice}
         style={styles.input}
         keyboardType="numeric"
       />
-      <Button title="Update Dish" onPress={handleEditDish} />
+      <Button title="Update Dish" onPress={handleEditDish} color="#4CAF50" />
     </View>
   );
 };
 
+const LoginScreen = ({ navigation, setIsLoggedIn }: any) => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleLogin = () => {
+    if (username === sampleUsername && password === samplePassword) {
+      setIsLoggedIn(true);
+      Alert.alert('Login successful!');
+      navigation.navigate('DishesList');
+    } else {
+      Alert.alert('Invalid username or password.');
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <TextInput
+        placeholder="Username"
+        value={username}
+        onChangeText={setUsername}
+        style={styles.input}
+      />
+      <TextInput
+        placeholder="Password"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+        style={styles.input}
+      />
+      <Button title="Login" onPress={handleLogin} color="#4CAF50" />
+    </View>
+  );
+};
+const getHeaderTitle = (routeName: string) => {
+  switch (routeName) {
+    case 'DishesList':
+      return 'Dishes List';
+    case 'AddDish':
+      return 'Add Dish';
+    case 'EditDish':
+      return 'Edit Dish';
+    case 'Login':
+      return 'Login';
+    default:
+      return '';
+  }
+};
+
 const App = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="DishesList">
-        <Stack.Screen name="DishesList" component={DishesListScreen} />
-        <Stack.Screen name="AddDish" component={AddDishScreen} />
-        <Stack.Screen name="EditDish" component={EditDishScreen} />
+        {['DishesList', 'Login', 'AddDish', 'EditDish'].map((name) => (
+          <Stack.Screen 
+            key={name} 
+            name={name} 
+            options={({ route }) => ({
+              headerTitle: () => (
+                <View style={styles.headerContainer}>
+                  <Logo />
+                  <Text style={styles.headerTitle}>{getHeaderTitle(route.name)}</Text>
+                </View>
+              ),
+              headerTitleAlign: 'center',
+              headerStyle: {
+                backgroundColor: '#1976D2', 
+              },
+              headerTintColor: '#fff',
+              headerBackTitleVisible: false,
+            })}
+          >
+            {(props) => {
+              if (name === 'DishesList') {
+                return <DishesListScreen {...props} isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />;
+              } else if (name === 'Login') {
+                return <LoginScreen {...props} setIsLoggedIn={setIsLoggedIn} />;
+              } else if (name === 'AddDish') {
+                return <AddDishScreen {...props} />;
+              } else if (name === 'EditDish') {
+                return <EditDishScreen {...props} />;
+              }
+              return null;
+            }}
+          </Stack.Screen>
+        ))}
       </Stack.Navigator>
     </NavigationContainer>
   );
 };
 
-export default App;
+
+
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    padding: 20,
+    backgroundColor: colours.background,
   },
   dishItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-    paddingVertical: 10,
+    backgroundColor: colours.dishBackground,
+    borderRadius: 10,
+    marginBottom: 15,
+    padding: 15,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 3.5,
+    elevation: 5,
   },
   dishDetails: {
-    flex: 1,
+    marginBottom: 10,
   },
   dishName: {
+    fontSize: 20,
     fontWeight: 'bold',
+    color: colours.primary, 
+  },
+  dishDescription: {
     fontSize: 16,
+    color: '#555',
   },
   dishPrice: {
-    color: 'green',
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colours.dishPrice, 
   },
   buttonContainer: {
     flexDirection: 'row',
-  },
-  flatListContainer: {
-    paddingBottom: 60, // Add padding to avoid overlap with buttons
-  },
-  loginButtonContainer: {
-    marginTop: 10,
-    marginBottom: 10,
+    justifyContent: 'space-between',
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    marginBottom: 10,
-    padding: 8,
+    height: 45,
+    borderColor: colours.inputBorder, 
+    borderWidth: 2,
+    marginBottom: 15,
+    paddingLeft: 10,
+    borderRadius: 8,
+    backgroundColor: colours.dishBackground, 
+  },
+  flatListContainer: {
+    paddingBottom: 20,
   },
   picker: {
     height: 50,
-    width: '100%',
+    marginBottom: 20,
+    borderColor: colours.inputBorder, 
+    borderWidth: 2,
+    borderRadius: 8,
+    backgroundColor: colours.dishBackground, 
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colours.primary, 
+    padding: 10,
+    borderRadius: 10,
+  },
+  headerTitle: {
+    fontSize: 22,
+    color: colours.text, 
+    marginLeft: 10, 
+  },
+  averagePriceText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1976D2', 
     marginBottom: 10,
   },
 });
+
+export default App;
